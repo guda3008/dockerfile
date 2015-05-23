@@ -1,19 +1,21 @@
-FROM phusion/baseimage:0.9.16
-MAINTAINER mikey.zhaopeng <user.zhaopeng@gmail.com>
+# sshd dockerfile
+#
+FROM centos:centos7
+MAINTAINER yaofh <m1375500@126.com>
 
-# Use baseimage-docker's init system.
-CMD ["/sbin/my_init"]
+RUN yum -y update
+RUN yum -y install git vim
+RUN yum -y install http://dev.mysql.com/get/mysql-community-release-el7-5.noarch.rpm
+RUN yum -y install maven tomcat mysql mysql-devel mysql-server mysql-utilities
+RUN yum install -y openssh-server
 
-# Change source
-RUN cp /etc/apt/sources.list /etc/apt/sources.list.backup
-RUN rm /etc/apt/sources.list
-ADD build/source/alisources.list /etc/apt/sources.list
+RUN useradd worker
+RUN echo 'worker:worker' |chpasswd
+RUN echo 'root:root' |chpasswd
 
-RUN apt-get update
+RUN /sbin/service sshd start
+RUN /sbin/service sshd stop
 
-RUN DEBIAN_FRONTEND="noninteractive" apt-get install -y vim curl wget lrzsz unzip
-
-# ...put your own build instructions here...
-
-# Clean up APT when done.
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+EXPOSE 8080
+EXPOSE 22
+CMD ["/usr/sbin/sshd", "-D"]
